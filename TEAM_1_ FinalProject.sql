@@ -108,11 +108,8 @@ SELECT
 FROM Contains;
 
 -- Q2: CEO of company managing "Jupiter" mutual fund
--- This query correctly finds the investment company that manages/operates Jupiter
 SELECT 
     ic.inv_company_name,
-    ic.ceo_first_name, 
-    ic.ceo_last_name,
     CONCAT(ic.ceo_first_name, ' ', ic.ceo_last_name) AS ceo_full_name
 FROM MutualFund mf
 JOIN InvestmentCompany ic ON mf.mf_iccompany_id = ic.inv_company_id
@@ -125,32 +122,8 @@ SELECT
     SUM(c.security_amount) AS total_invested
 FROM Contains c
 JOIN Security s ON c.contains_security_id = s.security_id
-GROUP BY s.security_id, s.security_name, s.security_type  -- Added security_id for proper grouping
+GROUP BY s.security_id, s.security_name, s.security_type
 ORDER BY total_invested DESC;
-
--- Additional useful queries:
-
--- Q4: All mutual funds managed by each investment company
-SELECT 
-    ic.inv_company_name,
-    ic.ceo_first_name,
-    ic.ceo_last_name,
-    mf.mf_name,
-    mf.mf_incorp_date
-FROM InvestmentCompany ic
-JOIN MutualFund mf ON ic.inv_company_id = mf.mf_iccompany_id
-ORDER BY ic.inv_company_name, mf.mf_name;
-
--- Q5: Securities held by Jupiter mutual fund
-SELECT 
-    s.security_name,
-    s.security_type,
-    c.security_amount
-FROM MutualFund mf
-JOIN Contains c ON mf.mf_id = c.contains_mf_id
-JOIN Security s ON c.contains_security_id = s.security_id
-WHERE mf.mf_name = 'Jupiter'
-ORDER BY c.security_amount DESC;
 
 -- Remove the database if it exists for testing purposes
 -- DROP DATABASE IF EXISTS Investco;
