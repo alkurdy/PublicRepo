@@ -2,11 +2,11 @@
 
 -- Step 1: Create the database
 
--- Create InvestcoScout database
-CREATE DATABASE IF NOT EXISTS InvestcoScout;
+-- Create Investco database
+CREATE DATABASE IF NOT EXISTS Investco;
 
--- Use InvestcoScout database
-USE InvestcoScout;
+-- Use Investco database
+USE Investco;
 
 -- Create Security table
 CREATE TABLE IF NOT EXISTS Security (
@@ -21,8 +21,9 @@ CREATE TABLE IF NOT EXISTS InvestmentCompany (
     CONSTRAINT chk_inv_company_id_length CHECK (LENGTH(inv_company_id) = 3),
     inv_company_name VARCHAR(100) NOT NULL UNIQUE,
     ceo_first_name VARCHAR(50) NOT NULL,
-    inv_company_ceo_last_name VARCHAR(50) NOT NULL
+    ceo_last_name VARCHAR(50) NOT NULL  -- Fixed: Made consistent naming
 );
+
 -- Create MutualFund table
 CREATE TABLE IF NOT EXISTS MutualFund (
     mf_id CHAR(2) PRIMARY KEY,
@@ -36,7 +37,8 @@ CREATE TABLE IF NOT EXISTS MutualFund (
 CREATE TABLE IF NOT EXISTS InvColocation (
     invcolo_company_id CHAR(3) NOT NULL,
     FOREIGN KEY (invcolo_company_id) REFERENCES InvestmentCompany(inv_company_id),
-    location VARCHAR(255) NOT NULL
+    location VARCHAR(255) NOT NULL,
+    PRIMARY KEY (invcolo_company_id, location)  -- Added composite primary key
 );
 
 -- Create Contains table
@@ -44,6 +46,7 @@ CREATE TABLE IF NOT EXISTS Contains (
     contains_mf_id CHAR(2) NOT NULL,
     contains_security_id CHAR(2) NOT NULL,
     security_amount DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (contains_mf_id, contains_security_id),  -- Added composite primary key
     FOREIGN KEY (contains_mf_id) REFERENCES MutualFund(mf_id),
     FOREIGN KEY (contains_security_id) REFERENCES Security(security_id)
 );
@@ -58,8 +61,8 @@ INSERT INTO Security (security_id, security_name, security_type) VALUES
 ('DU', 'Downtown Utility', 'Bond'),
 ('EM', 'Emmitt Machines', 'Stock');
 
--- Insert data into InvestmentCompany
-INSERT INTO InvestmentCompany (inv_company_id, inv_company_name, ceo_first_name, inv_company_ceo_last_name) VALUES
+-- Insert data into InvestmentCompany (Fixed column name)
+INSERT INTO InvestmentCompany (inv_company_id, inv_company_name, ceo_first_name, ceo_last_name) VALUES
 ('ACF', 'Acme Finance', 'Mick', 'Dempsey'),
 ('ALB', 'Albritton', 'Lena', 'Dollar'),
 ('TCA', 'Tara Capital', 'Ava', 'Newton');
@@ -97,5 +100,57 @@ INSERT INTO Contains (contains_mf_id, contains_security_id, security_amount) VAL
 ('SG', 'AE', 500.00),
 ('SG', 'DU', 300.00);
 
+-- QUERIES
+
+-- Q1: Total investments
+SELECT 
+    SUM(security_amount) AS total_investments
+FROM Contains;
+
+-- Q2: CEO of company managing "Jupiter" mutual fund
+-- This query correctly finds the investment company that manages/operates Jupiter
+SELECT 
+    ic.inv_company_name,
+    ic.ceo_first_name, 
+    ic.ceo_last_name,
+    CONCAT(ic.ceo_first_name, ' ', ic.ceo_last_name) AS ceo_full_name
+FROM MutualFund mf
+JOIN InvestmentCompany ic ON mf.mf_iccompany_id = ic.inv_company_id
+WHERE mf.mf_name = 'Jupiter';
+
+-- Q3: Grouped investments by security
+SELECT 
+    s.security_name,
+    s.security_type,
+    SUM(c.security_amount) AS total_invested
+FROM Contains c
+JOIN Security s ON c.contains_security_id = s.security_id
+GROUP BY s.security_id, s.security_name, s.security_type  -- Added security_id for proper grouping
+ORDER BY total_invested DESC;
+
+-- Additional useful queries:
+
+-- Q4: All mutual funds managed by each investment company
+SELECT 
+    ic.inv_company_name,
+    ic.ceo_first_name,
+    ic.ceo_last_name,
+    mf.mf_name,
+    mf.mf_incorp_date
+FROM InvestmentCompany ic
+JOIN MutualFund mf ON ic.inv_company_id = mf.mf_iccompany_id
+ORDER BY ic.inv_company_name, mf.mf_name;
+
+-- Q5: Securities held by Jupiter mutual fund
+SELECT 
+    s.security_name,
+    s.security_type,
+    c.security_amount
+FROM MutualFund mf
+JOIN Contains c ON mf.mf_id = c.contains_mf_id
+JOIN Security s ON c.contains_security_id = s.security_id
+WHERE mf.mf_name = 'Jupiter'
+ORDER BY c.security_amount DESC;
+
 -- Remove the database if it exists for testing purposes
--- DROP DATABASE IF EXISTS InvestcoScout;
+-- DROP DATABASE IF EXISTS Investco;
