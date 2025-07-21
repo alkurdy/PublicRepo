@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS InvestmentCompany (
     CONSTRAINT chk_inv_company_id_length CHECK (LENGTH(inv_company_id) = 3),
     inv_company_name VARCHAR(100) NOT NULL UNIQUE,
     ceo_first_name VARCHAR(50) NOT NULL,
-    ceo_last_name VARCHAR(50) NOT NULL  -- Fixed: Made consistent naming
+    ceo_last_name VARCHAR(50) NOT NULL
 );
 
 -- Create MutualFund table
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS InvColocation (
     invcolo_company_id CHAR(3) NOT NULL,
     FOREIGN KEY (invcolo_company_id) REFERENCES InvestmentCompany(inv_company_id),
     location VARCHAR(255) NOT NULL,
-    PRIMARY KEY (invcolo_company_id, location)  -- Added composite primary key
+    PRIMARY KEY (invcolo_company_id, location)
 );
 
 -- Create Contains table
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Contains (
     contains_mf_id CHAR(2) NOT NULL,
     contains_security_id CHAR(2) NOT NULL,
     security_amount DECIMAL(10, 2) NOT NULL,
-    PRIMARY KEY (contains_mf_id, contains_security_id),  -- Added composite primary key
+    PRIMARY KEY (contains_mf_id, contains_security_id),
     FOREIGN KEY (contains_mf_id) REFERENCES MutualFund(mf_id),
     FOREIGN KEY (contains_security_id) REFERENCES Security(security_id)
 );
@@ -61,7 +61,7 @@ INSERT INTO Security (security_id, security_name, security_type) VALUES
 ('DU', 'Downtown Utility', 'Bond'),
 ('EM', 'Emmitt Machines', 'Stock');
 
--- Insert data into InvestmentCompany (Fixed column name)
+-- Insert data into InvestmentCompany
 INSERT INTO InvestmentCompany (inv_company_id, inv_company_name, ceo_first_name, ceo_last_name) VALUES
 ('ACF', 'Acme Finance', 'Mick', 'Dempsey'),
 ('ALB', 'Albritton', 'Lena', 'Dollar'),
